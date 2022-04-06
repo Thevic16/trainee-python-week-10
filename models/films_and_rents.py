@@ -186,7 +186,7 @@ class RentCreate(RentBase):
     @validator('amount')
     def validate_amount(cls, v, values, **kwargs):
         validators.validator_no_negative(v)
-        validators.validate_amount(v, values['film_id'])
+        cls.verify_amount_availability(v, values['film_id'])
         return v
 
     @validator('return_date')
@@ -207,6 +207,16 @@ class RentCreate(RentBase):
     @validator('state')
     def validate_state(cls, v):
         return validators.validate_rent_state(v)
+
+    @staticmethod
+    def verify_amount_availability(amount: int, film_id: int):
+        statement = select(Film).where(Film.id == film_id)
+        film = session.exec(statement).one_or_none()
+
+        if (availability := (film.get_availability(film_id) - amount)) < 0:
+            raise AssertionError(
+                f'The amount exceeds availability by {-availability}')
+        return amount
 
 
 class RentRead(RentBase):

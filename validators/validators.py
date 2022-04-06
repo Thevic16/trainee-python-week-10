@@ -1,14 +1,12 @@
 import re
 from datetime import date
 
-# New Validators
-from sqlmodel import select
-
 from business_logic.business_logic import RentBusinessLogic
 from databases.db import get_db_session
-from models.films_and_rents import Film
 
 session = get_db_session()
+
+# New Validators
 
 
 def validate_email(email: str) -> str:
@@ -57,16 +55,6 @@ def validate_rent_state(film_type: str) -> str:
     if film_type not in ('open', 'close'):
         raise AssertionError('state should be open or close')
     return film_type
-
-
-def validate_amount(amount: int, film_id: int):
-    statement = select(Film).where(Film.id == film_id)
-    film = session.exec(statement).one_or_none()
-
-    if (availability := (film.get_availability(film_id) - amount)) < 0:
-        raise AssertionError(
-            f'The amount exceeds availability by {-availability}')
-    return amount
 
 
 # Film Validators

@@ -4,11 +4,9 @@ from sqlmodel import SQLModel
 from starlette.responses import JSONResponse
 
 from databases.db import engine, get_db_session
+from graphql_app.app import graphql_app
 
 from utilities.logger import Logger
-
-# Import routes
-from routers import users, security, films, persons, rents
 
 # Redis db imports
 from fastapi_redis_cache import FastApiRedisCache
@@ -21,17 +19,15 @@ load_dotenv()  # take environment variables from .env.
 
 app = FastAPI()
 
-# Add routes
-app.include_router(users.router)
-app.include_router(security.router)
-app.include_router(films.router)
-app.include_router(persons.router)
-app.include_router(rents.router)
-
 session = get_db_session()
 
 # Creating databases
 SQLModel.metadata.create_all(engine)
+
+
+# GraphQL app
+app.add_route("/graphql", graphql_app)
+app.add_websocket_route("/graphql", graphql_app)
 
 
 # Handling Errors--------------------------------------------------------------

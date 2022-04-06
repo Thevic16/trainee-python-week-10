@@ -6,6 +6,7 @@ from sqlmodel import select
 from starlette import status
 
 from databases.db import get_db_session
+from graphql_app.schemas.films import CategoryType, CategoryCreateType
 from models.films_and_rents import (CategoryRead, Category, CategoryCreate,
                                     FilmRead, Film, FilmCreate, SeasonRead,
                                     Season, SeasonCreate, ChapterRead, Chapter,
@@ -39,32 +40,31 @@ S3_Key = os.environ.get("S3_Key")
 s3_client = S3_SERVICE(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION)
 
 
-# Film Related Routes
-@router.get('/api/categories', response_model=List[CategoryRead],
-            status_code=status.HTTP_200_OK)
+# Film Related Resolvers
 @cache_one_month()
-async def get_all_categories():
+def get_all_categories():
     session.rollback()
     statement = select(Category)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = [CategoryType.from_pydantic(category)
+                          for category in results]
+
+    return results_strawberry
 
 
-@router.get('/api/categories/{category_id}', response_model=CategoryRead)
 @cache_one_month()
 async def get_by_id_a_category(category_id: int):
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
     result = session.exec(statement).first()
 
-    return result
+    result_strawberry = CategoryType.from_pydantic(result)
+
+    return result_strawberry
 
 
-@router.post('/api/categories', response_model=CategoryRead,
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(get_admin_user)])
-async def create_a_category(category: CategoryCreate):
+def create_a_category(category: CategoryCreateType) -> CategoryType:
     new_category = Category(name=category.name,
                             description=category.description)
     session.rollback()
@@ -72,12 +72,10 @@ async def create_a_category(category: CategoryCreate):
 
     session.commit()
 
-    return new_category
+    return CategoryType.from_pydantic(new_category)
 
 
-@router.put('/api/categories/{category_id}', response_model=CategoryRead,
-            dependencies=[Depends(get_admin_user)])
-async def update_a_category(category_id: int, category: CategoryCreate):
+def update_a_category(category_id: int, category: CategoryCreateType):
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
 
@@ -88,13 +86,10 @@ async def update_a_category(category_id: int, category: CategoryCreate):
 
     session.commit()
 
-    return result
+    return CategoryType.from_pydantic(result)
 
 
-@router.delete('/api/categories/{category_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_category(category_id: int):
+def delete_a_category(category_id: int):
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
 
