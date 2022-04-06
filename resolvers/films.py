@@ -66,7 +66,9 @@ def get_by_id_a_category(category_id: int) -> CategoryReadType:
     return CategoryReadType.from_pydantic(result)
 
 
-def create_a_category(category: CategoryCreateType) -> CategoryReadType:
+def create_a_category(categoryCreateType: CategoryCreateType) \
+        -> CategoryReadType:
+    category = categoryCreateType.to_pydantic()
     new_category = Category(name=category.name,
                             description=category.description)
     session.rollback()
@@ -77,9 +79,11 @@ def create_a_category(category: CategoryCreateType) -> CategoryReadType:
     return CategoryReadType.from_pydantic(new_category)
 
 
-def update_a_category(category_id: int, category: CategoryCreateType)\
-        -> CategoryReadType:
+def update_a_category(category_id: int, categoryCreateType:
+                      CategoryCreateType) -> CategoryReadType:
     session.rollback()
+    category = categoryCreateType.to_pydantic()
+
     statement = select(Category).where(Category.id == category_id)
 
     result = session.exec(statement).first()
@@ -139,8 +143,9 @@ def get_by_id_a_film(film_id: int) -> FilmReadType:
     return FilmReadType.from_pydantic(result)
 
 
-def create_a_film(film: FilmCreateType) -> FilmReadType:
+def create_a_film(filmCreateType: FilmCreateType) -> FilmReadType:
     session.rollback()
+    film = filmCreateType.to_pydantic()
     new_film = Film(title=film.title,
                     description=film.description,
                     release_date=film.release_date,
@@ -158,9 +163,10 @@ def create_a_film(film: FilmCreateType) -> FilmReadType:
     return FilmReadType.from_pydantic(new_film)
 
 
-def update_a_film(film_id: int, film: FilmCreateType)\
-        -> FilmReadType:
+def update_a_film(film_id: int,
+                  filmCreateType: FilmCreateType) -> FilmReadType:
     session.rollback()
+    film = filmCreateType.to_pydantic()
     statement = select(Film).where(Film.id == film_id)
 
     result = session.exec(statement).first()
