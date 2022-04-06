@@ -7,7 +7,7 @@ from starlette import status
 
 from databases.db import get_db_session
 from graphql_app.schemas.films import CategoryType, CategoryCreateType, \
-    CategoryReadType
+    CategoryReadType, FilmReadType, FilmCreateType
 from models.films_and_rents import (CategoryRead, Category, CategoryCreate,
                                     FilmRead, Film, FilmCreate, SeasonRead,
                                     Season, SeasonCreate, ChapterRead, Chapter,
@@ -43,7 +43,7 @@ s3_client = S3_SERVICE(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION)
 
 # Film Related Resolvers
 @cache_one_month()
-async def get_all_categories() -> List[CategoryReadType]:
+def get_all_categories() -> List[CategoryReadType]:
     session.rollback()
     statement = select(Category)
     results = session.exec(statement).all()
@@ -55,7 +55,7 @@ async def get_all_categories() -> List[CategoryReadType]:
 
 
 @cache_one_month()
-async def get_by_id_a_category(category_id: int) -> CategoryReadType:
+def get_by_id_a_category(category_id: int) -> CategoryReadType:
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
     result = session.exec(statement).first()
@@ -63,12 +63,10 @@ async def get_by_id_a_category(category_id: int) -> CategoryReadType:
     if result is None:
         raise Exception("Resource Not Found")
 
-    result_strawberry = CategoryReadType.from_pydantic(result)
-
-    return result_strawberry
+    return CategoryReadType.from_pydantic(result)
 
 
-async def create_a_category(category: CategoryCreateType) -> CategoryReadType:
+def create_a_category(category: CategoryCreateType) -> CategoryReadType:
     new_category = Category(name=category.name,
                             description=category.description)
     session.rollback()
@@ -79,7 +77,7 @@ async def create_a_category(category: CategoryCreateType) -> CategoryReadType:
     return CategoryReadType.from_pydantic(new_category)
 
 
-async def update_a_category(category_id: int, category: CategoryCreateType)\
+def update_a_category(category_id: int, category: CategoryCreateType)\
         -> CategoryReadType:
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
@@ -94,7 +92,7 @@ async def update_a_category(category_id: int, category: CategoryCreateType)\
     return CategoryReadType.from_pydantic(result)
 
 
-async def delete_a_category(category_id: int) -> CategoryReadType:
+def delete_a_category(category_id: int) -> CategoryReadType:
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
 
@@ -109,10 +107,8 @@ async def delete_a_category(category_id: int) -> CategoryReadType:
     return CategoryReadType.from_pydantic(result)
 
 
-@router.get('/api/films', response_model=List[FilmRead],
-            status_code=status.HTTP_200_OK)
 @cache_one_month()
-async def get_all_films():
+def get_all_films() -> List[FilmReadType]:
     session.rollback()
     statement = select(Film)
     results = session.exec(statement).all()
@@ -122,12 +118,14 @@ async def get_all_films():
             film.availability = Film.get_availability(film.id)
             session.commit()
 
-    return results
+    results_strawberry = [FilmReadType.from_pydantic(film)
+                          for film in results]
+
+    return results_strawberry
 
 
-@router.get('/api/films/{film_id}', response_model=FilmRead)
 @cache_one_month()
-async def get_by_id_a_film(film_id: int):
+def get_by_id_a_film(film_id: int) -> FilmReadType:
     session.rollback()
     statement = select(Film).where(Film.id == film_id)
     result = session.exec(statement).first()
@@ -135,14 +133,13 @@ async def get_by_id_a_film(film_id: int):
     if result:
         result.availability = Film.get_availability(film_id)
         session.commit()
+    else:
+        raise Exception("Resource Not Found")
 
-    return result
+    return FilmReadType.from_pydantic(result)
 
 
-@router.post('/api/films', response_model=FilmRead,
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(get_admin_user)])
-async def create_a_film(film: FilmCreate):
+def create_a_film(film: FilmCreateType) -> FilmReadType:
     session.rollback()
     new_film = Film(title=film.title,
                     description=film.description,
@@ -158,12 +155,11 @@ async def create_a_film(film: FilmCreate):
 
     session.commit()
 
-    return new_film
+    return FilmReadType.from_pydantic(new_film)
 
 
-@router.put('/api/films/{film_id}', response_model=FilmRead,
-            dependencies=[Depends(get_admin_user)])
-async def update_a_film(film_id: int, film: FilmCreate):
+def update_a_film(film_id: int, film: FilmCreateType)\
+        -> FilmReadType:
     session.rollback()
     statement = select(Film).where(Film.id == film_id)
 
@@ -182,26 +178,22 @@ async def update_a_film(film_id: int, film: FilmCreate):
 
     session.commit()
 
-    return result
+    return FilmReadType.from_pydantic(result)
 
 
-@router.delete('/api/films/{film_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_film(film_id: int):
+def delete_a_film(film_id: int) -> FilmReadType:
     session.rollback()
     statement = select(Film).where(Film.id == film_id)
 
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return FilmReadType.from_pydantic(result)
 
 
 @router.get('/api/posters', response_model=List[PosterRead],

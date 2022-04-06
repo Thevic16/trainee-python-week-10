@@ -31,6 +31,6 @@ class FilmCreateType:
     pass
 
 
-@strawberry.experimental.pydantic.input(model=FilmRead, all_fields=True)
+@strawberry.experimental.pydantic.type(model=FilmRead, all_fields=True)
 class FilmReadType:
     pass
