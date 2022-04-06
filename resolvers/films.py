@@ -6,7 +6,8 @@ from sqlmodel import select
 from starlette import status
 
 from databases.db import get_db_session
-from graphql_app.schemas.films import CategoryType, CategoryCreateType
+from graphql_app.schemas.films import CategoryType, CategoryCreateType, \
+    CategoryReadType
 from models.films_and_rents import (CategoryRead, Category, CategoryCreate,
                                     FilmRead, Film, FilmCreate, SeasonRead,
                                     Season, SeasonCreate, ChapterRead, Chapter,
@@ -42,29 +43,29 @@ s3_client = S3_SERVICE(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION)
 
 # Film Related Resolvers
 @cache_one_month()
-def get_all_categories():
+def get_all_categories() -> List[CategoryReadType]:
     session.rollback()
     statement = select(Category)
     results = session.exec(statement).all()
 
-    results_strawberry = [CategoryType.from_pydantic(category)
+    results_strawberry = [CategoryReadType.from_pydantic(category)
                           for category in results]
 
     return results_strawberry
 
 
 @cache_one_month()
-async def get_by_id_a_category(category_id: int):
+async def get_by_id_a_category(category_id: int) -> CategoryReadType:
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
     result = session.exec(statement).first()
 
-    result_strawberry = CategoryType.from_pydantic(result)
+    result_strawberry = CategoryReadType.from_pydantic(result)
 
     return result_strawberry
 
 
-def create_a_category(category: CategoryCreateType) -> CategoryType:
+def create_a_category(category: CategoryCreateType) -> CategoryReadType:
     new_category = Category(name=category.name,
                             description=category.description)
     session.rollback()
@@ -72,10 +73,11 @@ def create_a_category(category: CategoryCreateType) -> CategoryType:
 
     session.commit()
 
-    return CategoryType.from_pydantic(new_category)
+    return CategoryReadType.from_pydantic(new_category)
 
 
-def update_a_category(category_id: int, category: CategoryCreateType):
+def update_a_category(category_id: int, category: CategoryCreateType)\
+        -> CategoryReadType:
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
 
@@ -86,23 +88,22 @@ def update_a_category(category_id: int, category: CategoryCreateType):
 
     session.commit()
 
-    return CategoryType.from_pydantic(result)
+    return CategoryReadType.from_pydantic(result)
 
 
-def delete_a_category(category_id: int):
+def delete_a_category(category_id: int) -> CategoryReadType:
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
 
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return CategoryReadType.from_pydantic(result)
 
 
 @router.get('/api/films', response_model=List[FilmRead],
