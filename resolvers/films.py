@@ -7,7 +7,8 @@ from starlette import status
 
 from databases.db import get_db_session
 from graphql_app.schemas.films import CategoryType, CategoryCreateType, \
-    CategoryReadType, FilmReadType, FilmCreateType
+    CategoryReadType, FilmReadType, FilmCreateType, SeasonReadType, \
+    SeasonCreateType
 from models.films_and_rents import (CategoryRead, Category, CategoryCreate,
                                     FilmRead, Film, FilmCreate, SeasonRead,
                                     Season, SeasonCreate, ChapterRead, Chapter,
@@ -68,10 +69,10 @@ def get_by_id_a_category(category_id: int) -> CategoryReadType:
 
 def create_a_category(categoryCreateType: CategoryCreateType) \
         -> CategoryReadType:
+    session.rollback()
     category = categoryCreateType.to_pydantic()
     new_category = Category(name=category.name,
                             description=category.description)
-    session.rollback()
     session.add(new_category)
 
     session.commit()
@@ -279,32 +280,33 @@ async def delete_a_poster(poster_id: int):
     return result
 
 
-@router.get('/api/seasons', response_model=List[SeasonRead],
-            status_code=status.HTTP_200_OK)
 @cache_one_month()
-async def get_all_seasons():
+def get_all_seasons() -> List[SeasonReadType]:
     session.rollback()
     statement = select(Season)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = [SeasonReadType.from_pydantic(season)
+                          for season in results]
+
+    return results_strawberry
 
 
-@router.get('/api/seasons/{season_id}', response_model=SeasonRead)
 @cache_one_month()
-async def get_by_a_season(season_id: int):
+def get_by_a_season(season_id: int) -> SeasonReadType:
     session.rollback()
     statement = select(Season).where(Season.id == season_id)
     result = session.exec(statement).first()
 
-    return result
+    if result is None:
+        raise Exception("Resource Not Found")
+
+    return SeasonReadType.from_pydantic(result)
 
 
-@router.post('/api/seasons', response_model=SeasonRead,
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(get_admin_user)])
-async def create_a_season(season: SeasonCreate):
+def create_a_season(seasonCreateType: SeasonCreateType) -> SeasonReadType:
     session.rollback()
+    season = seasonCreateType.to_pydantic()
     new_season = Season(film_id=season.film_id,
                         title=season.title,
                         season_prequel_id=season.season_prequel_id)
@@ -312,13 +314,14 @@ async def create_a_season(season: SeasonCreate):
     session.add(new_season)
     session.commit()
 
-    return new_season
+    return SeasonReadType.from_pydantic(new_season)
 
 
-@router.put('/api/seasons/{season_id}', response_model=SeasonRead,
-            dependencies=[Depends(get_admin_user)])
-async def update_a_season(season_id: int, season: SeasonCreate):
+def update_a_season(season_id: int,
+                    seasonCreateType: SeasonCreateType) -> SeasonReadType:
     session.rollback()
+    season = seasonCreateType.to_pydantic()
+
     statement = select(Season).where(Season.id == season_id)
 
     result = session.exec(statement).first()
@@ -329,26 +332,22 @@ async def update_a_season(season_id: int, season: SeasonCreate):
 
     session.commit()
 
-    return result
+    return SeasonReadType.from_pydantic(result)
 
 
-@router.delete('/api/seasons/{season_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_season(season_id: int):
+def delete_a_season(season_id: int) -> SeasonReadType:
     session.rollback()
     statement = select(Season).where(Season.id == season_id)
 
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return SeasonReadType.from_pydantic(result)
 
 
 @router.get('/api/chapters', response_model=List[ChapterRead],

@@ -1,7 +1,8 @@
 import strawberry
 
 from models.films_and_rents import (Category, CategoryCreate, Film, FilmCreate,
-                                    CategoryRead, FilmRead)
+                                    CategoryRead, FilmRead, Season,
+                                    SeasonCreate, SeasonRead)
 
 
 # Category
@@ -33,4 +34,20 @@ class FilmCreateType:
 
 @strawberry.experimental.pydantic.type(model=FilmRead, all_fields=True)
 class FilmReadType:
+    pass
+
+
+# Season
+@strawberry.experimental.pydantic.type(model=Season, all_fields=True)
+class SeasonType:
+    pass
+
+
+@strawberry.experimental.pydantic.input(model=SeasonCreate, all_fields=True)
+class SeasonCreateType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(model=SeasonRead, all_fields=True)
+class SeasonReadType:
     pass
