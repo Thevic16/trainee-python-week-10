@@ -43,7 +43,7 @@ s3_client = S3_SERVICE(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION)
 
 # Film Related Resolvers
 @cache_one_month()
-def get_all_categories() -> List[CategoryReadType]:
+async def get_all_categories() -> List[CategoryReadType]:
     session.rollback()
     statement = select(Category)
     results = session.exec(statement).all()
@@ -60,12 +60,15 @@ async def get_by_id_a_category(category_id: int) -> CategoryReadType:
     statement = select(Category).where(Category.id == category_id)
     result = session.exec(statement).first()
 
+    if result is None:
+        raise Exception("Resource Not Found")
+
     result_strawberry = CategoryReadType.from_pydantic(result)
 
     return result_strawberry
 
 
-def create_a_category(category: CategoryCreateType) -> CategoryReadType:
+async def create_a_category(category: CategoryCreateType) -> CategoryReadType:
     new_category = Category(name=category.name,
                             description=category.description)
     session.rollback()
@@ -76,7 +79,7 @@ def create_a_category(category: CategoryCreateType) -> CategoryReadType:
     return CategoryReadType.from_pydantic(new_category)
 
 
-def update_a_category(category_id: int, category: CategoryCreateType)\
+async def update_a_category(category_id: int, category: CategoryCreateType)\
         -> CategoryReadType:
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
@@ -91,7 +94,7 @@ def update_a_category(category_id: int, category: CategoryCreateType)\
     return CategoryReadType.from_pydantic(result)
 
 
-def delete_a_category(category_id: int) -> CategoryReadType:
+async def delete_a_category(category_id: int) -> CategoryReadType:
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
 
