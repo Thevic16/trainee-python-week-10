@@ -5,6 +5,7 @@ from starlette.responses import JSONResponse
 
 from databases.db import engine, get_db_session
 from graphql_app.app import graphql_app
+from resolvers import films
 
 from utilities.logger import Logger
 
@@ -24,6 +25,8 @@ session = get_db_session()
 # Creating databases
 SQLModel.metadata.create_all(engine)
 
+# Add routes
+app.include_router(films.router)
 
 # GraphQL app
 app.add_route("/graphql", graphql_app)

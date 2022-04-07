@@ -80,7 +80,7 @@ def create_a_category(category_create_type: CategoryCreateType) \
 
 
 def update_a_category(category_id: int, category_create_type:
-                      CategoryCreateType) -> CategoryReadType:
+CategoryCreateType) -> CategoryReadType:
     session.rollback()
     category = category_create_type.to_pydantic()
 
@@ -232,8 +232,10 @@ def get_by_id_a_poster(poster_id: int) -> PosterReadType:
     return PosterReadType.from_pydantic(result)
 
 
+@router.post("/api/poster/upload/{film_id}", status_code=200,
+             description="Upload png poster asset to S3 ")
 async def upload_poster(
-        film_id: int, fileobject: UploadFile = File(...)) -> PosterReadType:
+        film_id: int, fileobject: UploadFile = File(...)):
     filename = fileobject.filename
     current_time = datetime.datetime.now()
     # split the file name into two different path (string +  extention)
@@ -263,9 +265,9 @@ async def upload_poster(
         session.add(new_poster)
         session.commit()
 
-        return PosterReadType.from_pydantic(new_poster)
+        return {"status": "success", "image_url": s3_url}  # response added
     else:
-        raise Exception("Failed to upload in S3")
+        raise HTTPException(status_code=400, detail="Failed to upload in S3")
 
 
 def delete_a_poster(poster_id: int) -> PosterReadType:
@@ -396,8 +398,8 @@ def create_a_chapter(
 
 
 def update_a_chapter(chapter_id: int,
-                     chapter_create_type: ChapterCreateType)\
-                     -> ChapterReadType:
+                     chapter_create_type: ChapterCreateType) \
+        -> ChapterReadType:
     session.rollback()
     chapter = chapter_create_type.to_pydantic()
 
