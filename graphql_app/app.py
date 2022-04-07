@@ -40,7 +40,8 @@ from resolvers.rents import get_by_id_a_rent, get_all_rents, create_a_rent, \
 from resolvers.security import login_for_access_token
 from resolvers.users import get_all_users, get_by_id_a_user, create_a_user, \
     update_a_user, delete_a_user
-from security.security import get_current_user, verify_admin_user
+from security.security import get_current_user, verify_admin_user, \
+    verify_admin_or_employee_user
 
 
 @strawberry.type
@@ -119,168 +120,267 @@ class Mutation:
     async def create_category(
             self, category: CategoryCreateType,
             token: str) -> CategoryReadType:
-
         user = await get_current_user(token)
         await verify_admin_user(user)
 
         return create_a_category(category)
 
     @strawberry.mutation
-    def update_category(self, category_id: int,
-                        category: CategoryCreateType) -> CategoryReadType:
+    async def update_category(self, category_id: int,
+                              category: CategoryCreateType,
+                              token: str) -> CategoryReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return update_a_category(category_id, category)
 
     @strawberry.mutation
-    def delete_category(self, category_id: int) -> CategoryReadType:
+    async def delete_category(self, category_id: int,
+                              token: str) -> CategoryReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return delete_a_category(category_id)
 
     # Film
     @strawberry.mutation
-    def create_film(self, film: FilmCreateType) \
-            -> FilmReadType:
+    async def create_film(self, film: FilmCreateType,
+                          token: str) -> FilmReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return create_a_film(film)
 
     @strawberry.mutation
-    def update_film(self, film_id: int,
-                    film: FilmCreateType) -> FilmReadType:
+    async def update_film(self, film_id: int,
+                          film: FilmCreateType, token: str) -> FilmReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return update_a_film(film_id, film)
 
     @strawberry.mutation
-    def delete_film(self, film_id: int) -> FilmReadType:
+    async def delete_film(self, film_id: int, token: str) -> FilmReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return delete_a_film(film_id)
 
     # Season
     @strawberry.mutation
-    def create_season(self, season: SeasonCreateType) \
-            -> SeasonReadType:
+    async def create_season(self,
+                            season: SeasonCreateType,
+                            token: str) -> SeasonReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return create_a_season(season)
 
     @strawberry.mutation
-    def update_season(self, season_id: int,
-                      season: SeasonCreateType) -> SeasonReadType:
+    async def update_season(self, season_id: int,
+                            season: SeasonCreateType,
+                            token: str) -> SeasonReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return update_a_season(season_id, season)
 
     @strawberry.mutation
-    def delete_season(self, season_id: int) -> SeasonReadType:
+    async def delete_season(self, season_id: int,
+                            token: str) -> SeasonReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return delete_a_season(season_id)
 
     # Chapter
     @strawberry.mutation
-    def create_chapter(self, chapter: ChapterCreateType) \
-            -> ChapterReadType:
+    async def create_chapter(self,
+                             chapter: ChapterCreateType,
+                             token: str) -> ChapterReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return create_a_chapter(chapter)
 
     @strawberry.mutation
-    def update_chapter(self, chapter_id: int,
-                       chapter: ChapterCreateType) -> ChapterReadType:
+    async def update_chapter(self, chapter_id: int,
+                             chapter: ChapterCreateType,
+                             token: str) -> ChapterReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return update_a_chapter(chapter_id, chapter)
 
     @strawberry.mutation
-    def delete_chapter(self, chapter_id: int) -> ChapterReadType:
+    async def delete_chapter(self, chapter_id: int,
+                             token: str) -> ChapterReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return delete_a_chapter(chapter_id)
 
     # Person
     @strawberry.mutation
-    def create_person(self, person: PersonCreateType) \
-            -> PersonReadType:
+    async def create_person(self,
+                            person: PersonCreateType,
+                            token: str) -> PersonReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return create_a_person(person)
 
     @strawberry.mutation
-    def update_person(self, person_id: int,
-                      person: PersonCreateType) -> PersonReadType:
+    async def update_person(self, person_id: int,
+                            person: PersonCreateType,
+                            token: str) -> PersonReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return update_a_person(person_id, person)
 
     @strawberry.mutation
-    def delete_person(self, person_id: int) -> PersonReadType:
+    async def delete_person(self, person_id: int,
+                            token: str) -> PersonReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return delete_a_person(person_id)
 
     # Role
     @strawberry.mutation
-    def create_role(self, role: RoleCreateType) \
-            -> RoleReadType:
+    async def create_role(self, role: RoleCreateType,
+                          token: str) -> RoleReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return create_a_role(role)
 
     @strawberry.mutation
-    def update_role(self, role_id: int,
-                    role: RoleCreateType) -> RoleReadType:
+    async def update_role(self, role_id: int,
+                          role: RoleCreateType, token: str) -> RoleReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return update_a_role(role_id, role)
 
     @strawberry.mutation
-    def delete_role(self, role_id: int) -> RoleReadType:
+    async def delete_role(self, role_id: int, token: str) -> RoleReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return delete_a_role(role_id)
 
     # Film Person Role
     @strawberry.mutation
-    def create_film_person_role(
-            self, film_person_role_create_type: FilmPersonRoleCreateType) \
-            -> FilmPersonRoleReadType:
+    async def create_film_person_role(
+            self, film_person_role_create_type: FilmPersonRoleCreateType,
+            token: str) -> FilmPersonRoleReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return create_a_film_person_role(film_person_role_create_type)
 
     @strawberry.mutation
-    def update_film_person_role(
+    async def update_film_person_role(
             self, film_person_role_id: int,
-            film_person_role_create_type: FilmPersonRoleCreateType) \
-            -> FilmPersonRoleReadType:
+            film_person_role_create_type: FilmPersonRoleCreateType,
+            token: str) -> FilmPersonRoleReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return update_a_film_person_role(film_person_role_id,
                                          film_person_role_create_type)
 
     @strawberry.mutation
-    def delete_film_person_role(self, film_person_role_id: int) \
-            -> FilmPersonRoleReadType:
+    async def delete_film_person_role(self, film_person_role_id: int,
+                                      token: str) -> FilmPersonRoleReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return delete_a_film_person_role(film_person_role_id)
 
     # Client
     @strawberry.mutation
-    def create_client(self, client_create_type: ClientCreateType) \
-            -> ClientReadType:
+    async def create_client(self, client_create_type: ClientCreateType,
+                            token: str) -> ClientReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return create_a_client(client_create_type)
 
     @strawberry.mutation
-    def update_client(self, client_id: int,
-                      client_create_type: ClientCreateType) \
-            -> ClientReadType:
+    async def update_client(self, client_id: int,
+                            client_create_type: ClientCreateType,
+                            token: str) -> ClientReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return update_a_client(client_id, client_create_type)
 
     @strawberry.mutation
-    def delete_client(self, client_id: int) -> ClientReadType:
+    async def delete_client(self, client_id: int,
+                            token: str) -> ClientReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return delete_a_client(client_id)
 
     # Rent
     @strawberry.mutation
-    def create_rent(self, rent_create_type: RentCreateType) -> RentReadType:
+    async def create_rent(self, rent_create_type: RentCreateType
+                          , token: str) -> RentReadType:
+        user = await get_current_user(token)
+        await verify_admin_or_employee_user(user)
+
         return create_a_rent(rent_create_type)
 
     @strawberry.mutation
-    def update_rent(self, rent_id: int,
-                    rent_create_type: RentCreateType) -> RentReadType:
+    async def update_rent(self, rent_id: int,
+                          rent_create_type: RentCreateType,
+                          token: str) -> RentReadType:
+        user = await get_current_user(token)
+        await verify_admin_or_employee_user(user)
+
         return update_a_rent(rent_id, rent_create_type)
 
     @strawberry.mutation
-    def delete_rent(self, rent_id: int) -> RentReadType:
+    async def delete_rent(self, rent_id: int, token: str) -> RentReadType:
+        user = await get_current_user(token)
+        await verify_admin_or_employee_user(user)
+
         return delete_a_rent(rent_id)
 
     # User
     @strawberry.mutation
-    def create_user(self, user_create_type: UserCreateType) -> UserReadType:
+    async def create_user(self,
+                          user_create_type: UserCreateType) -> UserReadType:
+
         return create_a_user(user_create_type)
 
     @strawberry.mutation
-    def update_user(self, user_id: int,
-                    user_create_type: UserCreateType) -> UserReadType:
+    async def update_user(self, user_id: int,
+                          user_create_type: UserCreateType,
+                          token: str) -> UserReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return update_a_user(user_id, user_create_type)
 
     @strawberry.mutation
-    def delete_user(self, user_id: int) -> UserReadType:
+    async def delete_user(self, user_id: int, token: str) -> UserReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return delete_a_user(user_id)
 
     # Poster
     @strawberry.mutation
-    async def create_poster(self, film_id: int,
-                            fileobject: Upload) -> PosterReadType:
-        return await upload_poster(film_id, fileobject)
+    async def delete_poster(self, poster_id: int,
+                            token: str) -> PosterReadType:
+        user = await get_current_user(token)
+        await verify_admin_user(user)
 
-    @strawberry.mutation
-    def delete_poster(self, poster_id: int) -> PosterReadType:
         return delete_a_poster(poster_id)
 
     # Token

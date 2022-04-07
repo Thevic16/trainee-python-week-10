@@ -61,7 +61,7 @@ def create_access_token(data: dict, expires_delta: timedelta):
 
 
 async def get_current_user(token: str):
-    credentials_exception = Exception("Could not validate credentials")
+    credentials_exception = Exception("Token: Could not validate credentials")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -82,10 +82,10 @@ async def get_current_user(token: str):
 # JWT permissions
 async def verify_admin_user(admin_user: User):
     if not admin_user.is_admin:
-        raise Exception("Not permission!,You are not admin user")
+        raise Exception("Token: Not permission!,You are not admin user")
 
 
 async def verify_admin_or_employee_user(
         user: User = Depends(get_current_user)):
     if not user.is_admin and not user.is_employee:
-        raise Exception("Inactive user")
+        raise Exception("Token: Inactive user")
