@@ -1,14 +1,17 @@
 import typing
+from typing import Any, Coroutine
 
 import strawberry
 from strawberry.asgi import GraphQL
+from strawberry.file_uploads import Upload
 
 from graphql_app.schemas.films import (CategoryType, CategoryCreateType,
                                        CategoryReadType, FilmType,
                                        FilmCreateType, FilmReadType,
                                        SeasonType, SeasonCreateType,
                                        SeasonReadType, ChapterType,
-                                       ChapterCreateType, ChapterReadType)
+                                       ChapterCreateType, ChapterReadType,
+                                       PosterType, PosterReadType)
 from graphql_app.schemas.persons import PersonReadType, PersonCreateType, \
     PersonType, RoleType, FilmPersonRoleType, ClientType, RoleReadType, \
     RoleCreateType, FilmPersonRoleCreateType, FilmPersonRoleReadType, \
@@ -23,7 +26,9 @@ from resolvers.films import (get_all_categories, get_by_id_a_category,
                              create_a_season, update_a_season, delete_a_season,
                              get_all_chapters, get_by_id_a_chapter,
                              create_a_chapter, update_a_chapter,
-                             delete_a_chapter)
+                             delete_a_chapter, get_all_posters,
+                             get_by_id_a_poster, upload_poster,
+                             delete_a_poster)
 from resolvers.persons import create_a_person, update_a_person, \
     delete_a_person, get_all_persons, get_by_id_a_person, get_all_roles, \
     get_by_id_a_role, get_all_clients, get_by_id_a_client, create_a_role, \
@@ -97,6 +102,12 @@ class Query:
         resolver=get_all_users)
     user: RentType = strawberry.field(
         resolver=get_by_id_a_user)
+
+    # Poster
+    posters: typing.List[PosterType] = strawberry.field(
+        resolver=get_all_posters)
+    poster: PosterType = strawberry.field(
+        resolver=get_by_id_a_poster)
 
 
 @strawberry.type
@@ -254,6 +265,16 @@ class Mutation:
     @strawberry.mutation
     def delete_user(self, user_id: int) -> UserReadType:
         return delete_a_user(user_id)
+
+    # Poster
+    @strawberry.mutation
+    async def create_poster(self, film_id: int,
+                            fileobject: Upload) -> PosterReadType:
+        return await upload_poster(film_id, fileobject)
+
+    @strawberry.mutation
+    def delete_poster(self, poster_id: int) -> PosterReadType:
+        return delete_a_poster(poster_id)
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)

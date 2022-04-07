@@ -8,7 +8,7 @@ from starlette import status
 from databases.db import get_db_session
 from graphql_app.schemas.films import CategoryType, CategoryCreateType, \
     CategoryReadType, FilmReadType, FilmCreateType, SeasonReadType, \
-    SeasonCreateType, ChapterReadType, ChapterCreateType
+    SeasonCreateType, ChapterReadType, ChapterCreateType, PosterReadType
 from models.films_and_rents import (CategoryRead, Category, CategoryCreate,
                                     FilmRead, Film, FilmCreate, SeasonRead,
                                     Season, SeasonCreate, ChapterRead, Chapter,
@@ -209,30 +209,32 @@ def delete_a_film(film_id: int) -> FilmReadType:
     return FilmReadType.from_pydantic(result)
 
 
-@router.get('/api/posters', response_model=List[PosterRead],
-            status_code=status.HTTP_200_OK)
 @cache_one_month()
-async def get_all_posters():
+async def get_all_posters() -> List[PosterReadType]:
     session.rollback()
     statement = select(Poster)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = [PosterReadType.from_pydantic(poster)
+                          for poster in results]
+
+    return results_strawberry
 
 
-@router.get('/api/posters/{poster_id}', response_model=PosterRead)
 @cache_one_month()
-async def get_by_id_a_poster(poster_id: int):
+def get_by_id_a_poster(poster_id: int) -> PosterReadType:
     session.rollback()
     statement = select(Poster).where(Poster.id == poster_id)
     result = session.exec(statement).first()
 
-    return result
+    if result is None:
+        raise Exception("Resource Not Found")
+
+    return PosterReadType.from_pydantic(result)
 
 
-@router.post("/api/poster/upload/{film_id}", status_code=200,
-             description="Upload png poster asset to S3 ")
-async def upload_poster(film_id: int, fileobject: UploadFile = File(...)):
+async def upload_poster(
+        film_id: int, fileobject: UploadFile = File(...)) -> PosterReadType:
     filename = fileobject.filename
     current_time = datetime.datetime.now()
     # split the file name into two different path (string +  extention)
@@ -262,28 +264,24 @@ async def upload_poster(film_id: int, fileobject: UploadFile = File(...)):
         session.add(new_poster)
         session.commit()
 
-        return {"status": "success", "image_url": s3_url}  # response added
+        return PosterReadType.from_pydantic(new_poster)
     else:
-        raise HTTPException(status_code=400, detail="Failed to upload in S3")
+        raise Exception("Failed to upload in S3")
 
 
-@router.delete('/api/posters/{poster_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_poster(poster_id: int):
+def delete_a_poster(poster_id: int) -> PosterReadType:
     session.rollback()
     statement = select(Poster).where(Poster.id == poster_id)
 
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return PosterReadType.from_pydantic(result)
 
 
 @cache_one_month()

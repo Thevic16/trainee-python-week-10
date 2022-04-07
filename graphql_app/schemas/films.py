@@ -3,7 +3,8 @@ import strawberry
 from models.films_and_rents import (Category, CategoryCreate, Film, FilmCreate,
                                     CategoryRead, FilmRead, Season,
                                     SeasonCreate, SeasonRead, Chapter,
-                                    ChapterCreate, ChapterRead)
+                                    ChapterCreate, ChapterRead, Poster,
+                                    PosterCreate, PosterRead)
 
 
 # Category
@@ -35,6 +36,22 @@ class FilmCreateType:
 
 @strawberry.experimental.pydantic.type(model=FilmRead, all_fields=True)
 class FilmReadType:
+    pass
+
+
+# Poster
+@strawberry.experimental.pydantic.type(model=Poster, all_fields=True)
+class PosterType:
+    pass
+
+
+@strawberry.experimental.pydantic.input(model=PosterCreate, all_fields=True)
+class PosterCreateType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(model=PosterRead, all_fields=True)
+class PosterReadType:
     pass
 
 
