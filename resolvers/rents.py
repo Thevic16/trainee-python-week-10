@@ -6,6 +6,7 @@ from sqlmodel import select
 from starlette import status
 
 from databases.db import get_db_session
+from graphql_app.schemas.rents import RentReadType, RentCreateType
 from models.films_and_rents import RentRead, Rent, RentCreate
 from security.security import get_admin_or_employee_user
 
@@ -15,32 +16,33 @@ session = get_db_session()
 
 
 # Rent Related Routes
-@router.get('/api/rents', response_model=List[RentRead],
-            status_code=status.HTTP_200_OK)
 @cache_one_month()
-async def get_all_rents():
+def get_all_rents() -> List[RentReadType]:
     session.rollback()
     statement = select(Rent)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = [RentReadType.from_pydantic(rent)
+                          for rent in results]
+
+    return results_strawberry
 
 
-@router.get('/api/rents/{rent_id}', response_model=RentRead)
 @cache_one_month()
-async def get_by_id_a_rent(rent_id: int):
+def get_by_id_a_rent(rent_id: int) -> RentReadType:
     session.rollback()
     statement = select(Rent).where(Rent.id == rent_id)
     result = session.exec(statement).first()
 
-    return result
+    if result is None:
+        raise Exception("Resource Not Found")
+
+    return RentReadType.from_pydantic(result)
 
 
-@router.post('/api/rents', response_model=RentRead,
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(get_admin_or_employee_user)])
-async def create_a_rent(rent: RentCreate):
+def create_a_rent(rent_create_type: RentCreateType) -> RentReadType:
     session.rollback()
+    rent = rent_create_type.to_pydantic()
     new_rent = Rent(film_id=rent.film_id,
                     client_id=rent.client_id,
                     amount=rent.amount,
@@ -54,16 +56,20 @@ async def create_a_rent(rent: RentCreate):
 
     session.commit()
 
-    return new_rent
+    return RentReadType.from_pydantic(new_rent)
 
 
-@router.put('/api/rents/{rent_id}', response_model=RentRead,
-            dependencies=[Depends(get_admin_or_employee_user)])
-async def update_a_rent(rent_id: int, rent: RentCreate):
+def update_a_rent(
+        rent_id: int, rent_create_type: RentCreateType) -> RentReadType:
     session.rollback()
+    rent = rent_create_type.to_pydantic()
+
     statement = select(Rent).where(Rent.id == rent_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.film_id = rent.film_id
     result.client_id = rent.client_id
@@ -72,28 +78,23 @@ async def update_a_rent(rent_id: int, rent: RentCreate):
     result.return_date = rent.return_date
     result.actual_return_date = rent.actual_return_date
     result.state = rent.state
-    if result:
-        result.cost = Rent.get_cost(rent)
+    result.cost = Rent.get_cost(rent)
 
     session.commit()
 
-    return result
+    return RentReadType.from_pydantic(result)
 
 
-@router.delete('/api/rents/{rent_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_or_employee_user)])
-async def delete_a_rent(rent_id: int):
+def delete_a_rent(rent_id: int) -> RentReadType:
     session.rollback()
     statement = select(Rent).where(Rent.id == rent_id)
 
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return RentReadType.from_pydantic(result)

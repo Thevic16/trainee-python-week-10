@@ -6,6 +6,7 @@ from sqlmodel import select
 from starlette import status
 
 from databases.db import get_db_session
+from graphql_app.schemas.users import UserReadType, UserCreateType
 from models.users import UserRead, User, UserCreate
 from security.security import get_admin_user, get_password_hash
 
@@ -14,34 +15,34 @@ router = APIRouter()
 session = get_db_session()
 
 
-# User Related Routes
-@router.get('/api/users', response_model=List[UserRead],
-            status_code=status.HTTP_200_OK,
-            dependencies=[Depends(get_admin_user)])
+# User Related Resolvers
 @cache_one_month()
-async def get_all_users():
+def get_all_users() -> List[UserReadType]:
     session.rollback()
     statement = select(User)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = [UserReadType.from_pydantic(user)
+                          for user in results]
+
+    return results_strawberry
 
 
-@router.get('/api/users/{user_id}', response_model=UserRead,
-            dependencies=[Depends(get_admin_user)])
 @cache_one_month()
-async def get_by_id_a_user(user_id: int):
+def get_by_id_a_user(user_id: int) -> UserReadType:
     session.rollback()
     statement = select(User).where(User.id == user_id)
     result = session.exec(statement).first()
 
-    return result
+    if result is None:
+        raise Exception("Resource Not Found")
+
+    return UserReadType.from_pydantic(result)
 
 
-@router.post('/api/users', response_model=UserRead,
-             status_code=status.HTTP_201_CREATED)
-async def create_a_user(user: UserCreate):
+def create_a_user(user_create_type: UserCreateType) -> UserReadType:
     session.rollback()
+    user = user_create_type.to_pydantic()
     new_user = User(username=user.username,
                     password=get_password_hash(user.password),
                     is_admin=user.is_admin,
@@ -51,16 +52,20 @@ async def create_a_user(user: UserCreate):
 
     session.commit()
 
-    return new_user
+    return UserReadType.from_pydantic(new_user)
 
 
-@router.put('/api/users/{user_id}', response_model=UserRead,
-            dependencies=[Depends(get_admin_user)])
-async def update_a_user(user_id: int, user: UserCreate):
+def update_a_user(user_id: int,
+                  user_create_type: UserCreateType) -> UserReadType:
     session.rollback()
+    user = user_create_type.to_pydantic()
+
     statement = select(User).where(User.id == user_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.username = user.username
     result.password = get_password_hash(user.password)
@@ -69,22 +74,18 @@ async def update_a_user(user_id: int, user: UserCreate):
 
     session.commit()
 
-    return result
+    return UserReadType.from_pydantic(result)
 
 
-@router.delete('/api/users/{user_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_user(user_id: int):
+def delete_a_user(user_id: int) -> UserReadType:
     session.rollback()
     statement = select(User).where(User.id == user_id)
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return UserReadType.from_pydantic(result)

@@ -13,6 +13,8 @@ from graphql_app.schemas.persons import PersonReadType, PersonCreateType, \
     PersonType, RoleType, FilmPersonRoleType, ClientType, RoleReadType, \
     RoleCreateType, FilmPersonRoleCreateType, FilmPersonRoleReadType, \
     ClientCreateType, ClientReadType
+from graphql_app.schemas.rents import RentType, RentCreateType, RentReadType
+from graphql_app.schemas.users import UserType, UserCreateType, UserReadType
 from resolvers.films import (get_all_categories, get_by_id_a_category,
                              create_a_category, update_a_category,
                              delete_a_category, get_all_films,
@@ -28,6 +30,10 @@ from resolvers.persons import create_a_person, update_a_person, \
     update_a_role, delete_a_role, create_a_film_person_role, \
     update_a_film_person_role, delete_a_film_person_role, create_a_client, \
     update_a_client, delete_a_client
+from resolvers.rents import get_by_id_a_rent, get_all_rents, create_a_rent, \
+    update_a_rent, delete_a_rent
+from resolvers.users import get_all_users, get_by_id_a_user, create_a_user, \
+    update_a_user, delete_a_user
 
 
 @strawberry.type
@@ -79,6 +85,18 @@ class Query:
         resolver=get_all_clients)
     client: ClientType = strawberry.field(
         resolver=get_by_id_a_client)
+
+    # Rent
+    rents: typing.List[RentType] = strawberry.field(
+        resolver=get_all_rents)
+    rent: RentType = strawberry.field(
+        resolver=get_by_id_a_rent)
+
+    # User
+    users: typing.List[UserType] = strawberry.field(
+        resolver=get_all_users)
+    user: RentType = strawberry.field(
+        resolver=get_by_id_a_user)
 
 
 @strawberry.type
@@ -208,6 +226,34 @@ class Mutation:
     @strawberry.mutation
     def delete_client(self, client_id: int) -> ClientReadType:
         return delete_a_client(client_id)
+
+    # Rent
+    @strawberry.mutation
+    def create_rent(self, rent_create_type: RentCreateType) -> RentReadType:
+        return create_a_rent(rent_create_type)
+
+    @strawberry.mutation
+    def update_rent(self, rent_id: int,
+                    rent_create_type: RentCreateType) -> RentReadType:
+        return update_a_rent(rent_id, rent_create_type)
+
+    @strawberry.mutation
+    def delete_rent(self, rent_id: int) -> RentReadType:
+        return delete_a_rent(rent_id)
+
+    # User
+    @strawberry.mutation
+    def create_user(self, user_create_type: UserCreateType) -> UserReadType:
+        return create_a_user(user_create_type)
+
+    @strawberry.mutation
+    def update_user(self, user_id: int,
+                    user_create_type: UserCreateType) -> UserReadType:
+        return update_a_user(user_id, user_create_type)
+
+    @strawberry.mutation
+    def delete_user(self, user_id: int) -> UserReadType:
+        return delete_a_user(user_id)
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
