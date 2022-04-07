@@ -8,7 +8,7 @@ from starlette import status
 from databases.db import get_db_session
 from graphql_app.schemas.films import CategoryType, CategoryCreateType, \
     CategoryReadType, FilmReadType, FilmCreateType, SeasonReadType, \
-    SeasonCreateType
+    SeasonCreateType, ChapterReadType, ChapterCreateType
 from models.films_and_rents import (CategoryRead, Category, CategoryCreate,
                                     FilmRead, Film, FilmCreate, SeasonRead,
                                     Season, SeasonCreate, ChapterRead, Chapter,
@@ -350,32 +350,33 @@ def delete_a_season(season_id: int) -> SeasonReadType:
     return SeasonReadType.from_pydantic(result)
 
 
-@router.get('/api/chapters', response_model=List[ChapterRead],
-            status_code=status.HTTP_200_OK)
 @cache_one_month()
-async def get_all_chapters():
+def get_all_chapters() -> List[ChapterReadType]:
     session.rollback()
     statement = select(Chapter)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = [ChapterReadType.from_pydantic(chapter)
+                          for chapter in results]
+
+    return results_strawberry
 
 
-@router.get('/api/chapters/{chapter_id}', response_model=ChapterRead)
 @cache_one_month()
-async def get_by_id_a_chapter(chapter_id: int):
+def get_by_id_a_chapter(chapter_id: int) -> ChapterReadType:
     session.rollback()
     statement = select(Chapter).where(Chapter.id == chapter_id)
     result = session.exec(statement).first()
 
-    return result
+    if result is None:
+        raise Exception("Resource Not Found")
+
+    return ChapterReadType.from_pydantic(result)
 
 
-@router.post('/api/chapters', response_model=ChapterRead,
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(get_admin_user)])
-async def create_a_chapter(chapter: ChapterCreate):
+def create_a_chapter(chapterCreateType: ChapterCreateType) -> ChapterReadType:
     session.rollback()
+    chapter = chapterCreateType.to_pydantic()
     new_chapter = Chapter(season_id=chapter.season_id,
                           title=chapter.title,
                           chapter_prequel_id=chapter.chapter_prequel_id)
@@ -384,13 +385,14 @@ async def create_a_chapter(chapter: ChapterCreate):
 
     session.commit()
 
-    return new_chapter
+    return ChapterReadType.from_pydantic(new_chapter)
 
 
-@router.put('/api/chapters/{chapter_id}', response_model=ChapterRead,
-            dependencies=[Depends(get_admin_user)])
-async def update_a_chapter(chapter_id: int, chapter: ChapterCreate):
+def update_a_chapter(chapter_id: int,
+                     chapterCreateType: ChapterCreateType) -> ChapterReadType:
     session.rollback()
+    chapter = chapterCreateType.to_pydantic()
+
     statement = select(Chapter).where(Chapter.id == chapter_id)
 
     result = session.exec(statement).first()
@@ -401,23 +403,19 @@ async def update_a_chapter(chapter_id: int, chapter: ChapterCreate):
 
     session.commit()
 
-    return result
+    return ChapterReadType.from_pydantic(result)
 
 
-@router.delete('/api/chapters/{chapter_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_chapter(chapter_id: int):
+def delete_a_chapter(chapter_id: int) -> ChapterReadType:
     session.rollback()
     statement = select(Chapter).where(Chapter.id == chapter_id)
 
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return ChapterReadType.from_pydantic(result)

@@ -7,13 +7,17 @@ from graphql_app.schemas.films import (CategoryType, CategoryCreateType,
                                        CategoryReadType, FilmType,
                                        FilmCreateType, FilmReadType,
                                        SeasonType, SeasonCreateType,
-                                       SeasonReadType)
+                                       SeasonReadType, ChapterType,
+                                       ChapterCreateType, ChapterReadType)
 from resolvers.films import (get_all_categories, get_by_id_a_category,
                              create_a_category, update_a_category,
                              delete_a_category, get_all_films,
                              get_by_id_a_film, create_a_film, update_a_film,
                              delete_a_film, get_all_seasons, get_by_a_season,
-                             create_a_season, update_a_season, delete_a_season)
+                             create_a_season, update_a_season, delete_a_season,
+                             get_all_chapters, get_by_id_a_chapter,
+                             create_a_chapter, update_a_chapter,
+                             delete_a_chapter)
 
 
 @strawberry.type
@@ -35,6 +39,12 @@ class Query:
         resolver=get_all_seasons)
     season: SeasonType = strawberry.field(
         resolver=get_by_a_season)
+
+    # Chapter
+    chapters: typing.List[ChapterType] = strawberry.field(
+        resolver=get_all_chapters)
+    chapter: ChapterType = strawberry.field(
+        resolver=get_by_id_a_chapter)
 
 
 @strawberry.type
@@ -83,6 +93,21 @@ class Mutation:
     @strawberry.mutation
     def delete_season(self, season_id: int) -> SeasonReadType:
         return delete_a_season(season_id)
+
+    # Chapter
+    @strawberry.mutation
+    def create_chapter(self, chapter: ChapterCreateType) \
+            -> ChapterReadType:
+        return create_a_chapter(chapter)
+
+    @strawberry.mutation
+    def update_chapter(self, chapter_id: int,
+                       chapter: ChapterCreateType) -> ChapterReadType:
+        return update_a_chapter(chapter_id, chapter)
+
+    @strawberry.mutation
+    def delete_chapter(self, chapter_id: int) -> ChapterReadType:
+        return delete_a_chapter(chapter_id)
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
