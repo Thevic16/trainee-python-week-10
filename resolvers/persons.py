@@ -6,6 +6,9 @@ from sqlmodel import select
 from starlette import status
 
 from databases.db import get_db_session
+from graphql_app.schemas.persons import PersonReadType, PersonCreateType, \
+    RoleReadType, RoleCreateType, FilmPersonRoleReadType, \
+    FilmPersonRoleCreateType, ClientReadType, ClientCreateType
 from models.persons import PersonRead, Person, PersonCreate, RoleRead, Role, \
     RoleCreate, FilmPersonRoleRead, FilmPersonRole, FilmPersonRoleCreate, \
     ClientRead, Client, ClientCreate
@@ -17,32 +20,33 @@ session = get_db_session()
 
 
 # Person Related Routes
-@router.get('/api/persons', response_model=List[PersonRead],
-            status_code=status.HTTP_200_OK)
 @cache_one_month()
-async def get_all_persons():
+def get_all_persons() -> List[PersonReadType]:
     session.rollback()
     statement = select(Person)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = [PersonReadType.from_pydantic(person)
+                          for person in results]
+
+    return results_strawberry
 
 
-@router.get('/api/persons/{person_id}', response_model=PersonRead)
 @cache_one_month()
-async def get_by_id_a_person(person_id: int):
+def get_by_id_a_person(person_id: int) -> PersonReadType:
     session.rollback()
     statement = select(Person).where(Person.id == person_id)
     result = session.exec(statement).first()
 
-    return result
+    if result is None:
+        raise Exception("Resource Not Found")
+
+    return PersonReadType.from_pydantic(result)
 
 
-@router.post('/api/persons', response_model=PersonRead,
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(get_admin_user)])
-async def create_a_person(person: PersonCreate):
+def create_a_person(person_create_type: PersonCreateType) -> PersonReadType:
     session.rollback()
+    person = person_create_type.to_pydantic()
     new_person = Person(name=person.name,
                         lastname=person.lastname,
                         gender=person.gender,
@@ -54,75 +58,74 @@ async def create_a_person(person: PersonCreate):
 
     session.commit()
 
-    return new_person
+    return PersonReadType.from_pydantic(new_person)
 
 
-@router.put('/api/persons/{person_id}', response_model=PersonRead,
-            dependencies=[Depends(get_admin_user)])
-async def update_a_person(person_id: int, person: PersonCreate):
+def update_a_person(person_id: int,
+                    person_create_type: PersonCreateType) -> PersonReadType:
     session.rollback()
+    person = person_create_type.to_pydantic()
     statement = select(Person).where(Person.id == person_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.name = person.name
     result.lastname = person.lastname
     result.gender = person.gender
     result.date_of_birth = person.date_of_birth
     result.person_type = person.person_type
-    if result:
-        result.age = Person.get_age(result.date_of_birth)
+    result.age = Person.get_age(result.date_of_birth)
 
     session.commit()
 
-    return result
+    return PersonReadType.from_pydantic(result)
 
 
-@router.delete('/api/persons/{person_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_person(person_id: int):
+def delete_a_person(person_id: int) -> PersonReadType:
     session.rollback()
     statement = select(Person).where(Person.id == person_id)
 
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return PersonReadType.from_pydantic(result)
 
 
-@router.get('/api/roles', response_model=List[RoleRead],
-            status_code=status.HTTP_200_OK)
 @cache_one_month()
-async def get_all_roles():
+def get_all_roles() -> List[RoleReadType]:
     session.rollback()
     statement = select(Role)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = [RoleReadType.from_pydantic(role)
+                          for role in results]
+
+    return results_strawberry
 
 
-@router.get('/api/roles/{role_id}', response_model=RoleRead)
 @cache_one_month()
-async def get_by_id_a_role(role_id: int):
+def get_by_id_a_role(role_id: int) -> RoleReadType:
     session.rollback()
     statement = select(Role).where(Role.id == role_id)
     result = session.exec(statement).first()
 
-    return result
+    if result is None:
+        raise Exception("Resource Not Found")
+
+    return RoleReadType.from_pydantic(result)
 
 
-@router.post('/api/roles', response_model=RoleRead,
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(get_admin_user)])
-async def create_a_role(role: RoleCreate):
+def create_a_role(role_create_type: RoleCreateType) -> RoleReadType:
     session.rollback()
+    role = role_create_type.to_pydantic()
     new_role = Role(name=role.name,
                     description=role.description)
 
@@ -130,95 +133,101 @@ async def create_a_role(role: RoleCreate):
 
     session.commit()
 
-    return new_role
+    return RoleReadType.from_pydantic(new_role)
 
 
-@router.put('/api/roles/{role_id}', response_model=RoleRead,
-            dependencies=[Depends(get_admin_user)])
-async def update_a_role(role_id: int, role: RoleCreate):
+def update_a_role(role_id: int,
+                  role_create_type: RoleCreateType) -> RoleReadType:
     session.rollback()
+    role = role_create_type.to_pydantic()
+
     statement = select(Role).where(Role.id == role_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.name = role.name
     result.description = role.description
 
     session.commit()
 
-    return result
+    return RoleReadType.from_pydantic(result)
 
 
-@router.delete('/api/roles/{role_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_role(role_id: int):
+def delete_a_role(role_id: int) -> RoleReadType:
     session.rollback()
     statement = select(Role).where(Role.id == role_id)
 
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return RoleReadType.from_pydantic(result)
 
 
-@router.get('/api/films-persons-roles',
-            response_model=List[FilmPersonRoleRead],
-            status_code=status.HTTP_200_OK)
 @cache_one_month()
-async def get_all_films_persons_roles():
+def get_all_films_persons_roles() -> List[FilmPersonRoleReadType]:
     session.rollback()
     statement = select(FilmPersonRole)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = \
+        [FilmPersonRoleReadType.from_pydantic(film_person_role)
+                          for film_person_role in results]
+
+    return results_strawberry
 
 
-@router.get('/api/films-persons-roles/{film_person_role_id}',
-            response_model=FilmPersonRoleRead)
 @cache_one_month()
-async def get_by_id_a_film_person_role(film_person_role_id: int):
+def get_by_id_a_film_person_role(film_person_role_id: int)\
+        -> FilmPersonRoleReadType:
     session.rollback()
     statement = select(FilmPersonRole).where(
         FilmPersonRole.id == film_person_role_id)
 
     result = session.exec(statement).first()
 
-    return result
+    if result is None:
+        raise Exception("Resource Not Found")
+
+    return FilmPersonRoleReadType.from_pydantic(result)
 
 
-@router.post('/api/films-persons-roles', response_model=FilmPersonRoleRead,
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(get_admin_user)])
-async def create_a_film_person_role(role: FilmPersonRoleCreate):
+def create_a_film_person_role(
+        film_person_role_create_type: FilmPersonRoleCreateType)\
+        -> FilmPersonRoleReadType:
     session.rollback()
-    new_film_person_role = FilmPersonRole(film_id=role.film_id,
-                                          person_id=role.person_id,
-                                          role_id=role.role_id)
+    film_person_role = film_person_role_create_type.to_pydantic()
+    new_film_person_role = FilmPersonRole(film_id=film_person_role.film_id,
+                                          person_id=film_person_role.person_id,
+                                          role_id=film_person_role.role_id)
 
     session.add(new_film_person_role)
 
     session.commit()
 
-    return new_film_person_role
+    return FilmPersonRoleReadType.from_pydantic(new_film_person_role)
 
 
-@router.put('/api/films-persons-roles/{film_person_role_id}',
-            response_model=FilmPersonRoleRead,
-            dependencies=[Depends(get_admin_user)])
-async def update_a_film_person_role(film_person_role_id: int,
-                                    film_person_role: FilmPersonRoleCreate):
+def update_a_film_person_role(film_person_role_id: int,
+                              film_person_role_create_type:
+                              FilmPersonRoleCreateType)\
+        -> FilmPersonRoleReadType:
     session.rollback()
+    film_person_role = film_person_role_create_type.to_pydantic()
     statement = select(FilmPersonRole).where(
         FilmPersonRole.id == film_person_role_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.film_id = film_person_role.film_id
     result.person_id = film_person_role.person_id
@@ -226,13 +235,11 @@ async def update_a_film_person_role(film_person_role_id: int,
 
     session.commit()
 
-    return result
+    return FilmPersonRoleReadType.from_pydantic(result)
 
 
-@router.delete('/api/films-persons-roles/{film_person_role_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_film_person_role(film_person_role_id: int):
+def delete_a_film_person_role(film_person_role_id: int)\
+        -> FilmPersonRoleReadType:
     session.rollback()
     statement = select(FilmPersonRole).where(
         FilmPersonRole.id == film_person_role_id)
@@ -240,41 +247,41 @@ async def delete_a_film_person_role(film_person_role_id: int):
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return FilmPersonRoleReadType.from_pydantic(result)
 
 
-@router.get('/api/clients', response_model=List[ClientRead],
-            status_code=status.HTTP_200_OK)
 @cache_one_month()
-async def get_all_clients():
+def get_all_clients() -> List[ClientReadType]:
     session.rollback()
     statement = select(Client)
     results = session.exec(statement).all()
 
-    return results
+    results_strawberry = [ClientReadType.from_pydantic(client)
+                          for client in results]
+
+    return results_strawberry
 
 
-@router.get('/api/clients/{client_id}', response_model=ClientRead)
 @cache_one_month()
-async def get_by_id_a_client(client_id: int):
+def get_by_id_a_client(client_id: int) -> ClientReadType:
     session.rollback()
     statement = select(Client).where(Client.id == client_id)
     result = session.exec(statement).first()
 
-    return result
+    if result is None:
+        raise Exception("Resource Not Found")
+
+    return ClientReadType.from_pydantic(result)
 
 
-@router.post('/api/clients', response_model=ClientRead,
-             status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(get_admin_user)])
-async def create_a_client(client: ClientCreate):
+def create_a_client(client_create_type: ClientCreateType) -> ClientReadType:
     session.rollback()
+    client = client_create_type.to_pydantic()
     new_client = Client(person_id=client.person_id,
                         direction=client.direction,
                         phone=client.phone,
@@ -284,16 +291,19 @@ async def create_a_client(client: ClientCreate):
 
     session.commit()
 
-    return new_client
+    return ClientReadType.from_pydantic(new_client)
 
 
-@router.put('/api/clients/{client_id}', response_model=ClientRead,
-            dependencies=[Depends(get_admin_user)])
-async def update_a_client(client_id: int, client: Client):
+def update_a_client(client_id: int, client_create_type: ClientCreateType)\
+        -> ClientReadType:
     session.rollback()
+    client = client_create_type.to_pydantic()
     statement = select(Client).where(Client.id == client_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.person_id = client.person_id
     result.direction = client.direction
@@ -302,23 +312,19 @@ async def update_a_client(client_id: int, client: Client):
 
     session.commit()
 
-    return result
+    return ClientReadType.from_pydantic(result)
 
 
-@router.delete('/api/clients/{client_id}',
-               status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(get_admin_user)])
-async def delete_a_client(client_id: int):
+def delete_a_client(client_id: int) -> ClientReadType:
     session.rollback()
     statement = select(Client).where(Client.id == client_id)
 
     result = session.exec(statement).one_or_none()
 
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="Resource Not Found")
+        raise Exception("Resource Not Found")
 
     session.delete(result)
     session.commit()
 
-    return result
+    return ClientReadType.from_pydantic(result)

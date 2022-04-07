@@ -67,10 +67,10 @@ def get_by_id_a_category(category_id: int) -> CategoryReadType:
     return CategoryReadType.from_pydantic(result)
 
 
-def create_a_category(categoryCreateType: CategoryCreateType) \
+def create_a_category(category_create_type: CategoryCreateType) \
         -> CategoryReadType:
     session.rollback()
-    category = categoryCreateType.to_pydantic()
+    category = category_create_type.to_pydantic()
     new_category = Category(name=category.name,
                             description=category.description)
     session.add(new_category)
@@ -80,14 +80,17 @@ def create_a_category(categoryCreateType: CategoryCreateType) \
     return CategoryReadType.from_pydantic(new_category)
 
 
-def update_a_category(category_id: int, categoryCreateType:
+def update_a_category(category_id: int, category_create_type:
                       CategoryCreateType) -> CategoryReadType:
     session.rollback()
-    category = categoryCreateType.to_pydantic()
+    category = category_create_type.to_pydantic()
 
     statement = select(Category).where(Category.id == category_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.name = category.name
     result.description = category.description
@@ -144,9 +147,9 @@ def get_by_id_a_film(film_id: int) -> FilmReadType:
     return FilmReadType.from_pydantic(result)
 
 
-def create_a_film(filmCreateType: FilmCreateType) -> FilmReadType:
+def create_a_film(film_create_type: FilmCreateType) -> FilmReadType:
     session.rollback()
-    film = filmCreateType.to_pydantic()
+    film = film_create_type.to_pydantic()
     new_film = Film(title=film.title,
                     description=film.description,
                     release_date=film.release_date,
@@ -165,12 +168,15 @@ def create_a_film(filmCreateType: FilmCreateType) -> FilmReadType:
 
 
 def update_a_film(film_id: int,
-                  filmCreateType: FilmCreateType) -> FilmReadType:
+                  film_create_type: FilmCreateType) -> FilmReadType:
     session.rollback()
-    film = filmCreateType.to_pydantic()
+    film = film_create_type.to_pydantic()
     statement = select(Film).where(Film.id == film_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.title = film.title
     result.description = film.description
@@ -304,9 +310,9 @@ def get_by_a_season(season_id: int) -> SeasonReadType:
     return SeasonReadType.from_pydantic(result)
 
 
-def create_a_season(seasonCreateType: SeasonCreateType) -> SeasonReadType:
+def create_a_season(season_create_type: SeasonCreateType) -> SeasonReadType:
     session.rollback()
-    season = seasonCreateType.to_pydantic()
+    season = season_create_type.to_pydantic()
     new_season = Season(film_id=season.film_id,
                         title=season.title,
                         season_prequel_id=season.season_prequel_id)
@@ -318,13 +324,16 @@ def create_a_season(seasonCreateType: SeasonCreateType) -> SeasonReadType:
 
 
 def update_a_season(season_id: int,
-                    seasonCreateType: SeasonCreateType) -> SeasonReadType:
+                    season_create_type: SeasonCreateType) -> SeasonReadType:
     session.rollback()
-    season = seasonCreateType.to_pydantic()
+    season = season_create_type.to_pydantic()
 
     statement = select(Season).where(Season.id == season_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.film_id = season.film_id
     result.title = season.title
@@ -374,9 +383,10 @@ def get_by_id_a_chapter(chapter_id: int) -> ChapterReadType:
     return ChapterReadType.from_pydantic(result)
 
 
-def create_a_chapter(chapterCreateType: ChapterCreateType) -> ChapterReadType:
+def create_a_chapter(
+        chapter_create_type: ChapterCreateType) -> ChapterReadType:
     session.rollback()
-    chapter = chapterCreateType.to_pydantic()
+    chapter = chapter_create_type.to_pydantic()
     new_chapter = Chapter(season_id=chapter.season_id,
                           title=chapter.title,
                           chapter_prequel_id=chapter.chapter_prequel_id)
@@ -389,13 +399,17 @@ def create_a_chapter(chapterCreateType: ChapterCreateType) -> ChapterReadType:
 
 
 def update_a_chapter(chapter_id: int,
-                     chapterCreateType: ChapterCreateType) -> ChapterReadType:
+                     chapter_create_type: ChapterCreateType)\
+                     -> ChapterReadType:
     session.rollback()
-    chapter = chapterCreateType.to_pydantic()
+    chapter = chapter_create_type.to_pydantic()
 
     statement = select(Chapter).where(Chapter.id == chapter_id)
 
     result = session.exec(statement).first()
+
+    if result is None:
+        raise Exception("Resource Not Found")
 
     result.season_id = chapter.season_id
     result.title = chapter.title

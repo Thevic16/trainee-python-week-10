@@ -9,6 +9,10 @@ from graphql_app.schemas.films import (CategoryType, CategoryCreateType,
                                        SeasonType, SeasonCreateType,
                                        SeasonReadType, ChapterType,
                                        ChapterCreateType, ChapterReadType)
+from graphql_app.schemas.persons import PersonReadType, PersonCreateType, \
+    PersonType, RoleType, FilmPersonRoleType, ClientType, RoleReadType, \
+    RoleCreateType, FilmPersonRoleCreateType, FilmPersonRoleReadType, \
+    ClientCreateType, ClientReadType
 from resolvers.films import (get_all_categories, get_by_id_a_category,
                              create_a_category, update_a_category,
                              delete_a_category, get_all_films,
@@ -18,6 +22,12 @@ from resolvers.films import (get_all_categories, get_by_id_a_category,
                              get_all_chapters, get_by_id_a_chapter,
                              create_a_chapter, update_a_chapter,
                              delete_a_chapter)
+from resolvers.persons import create_a_person, update_a_person, \
+    delete_a_person, get_all_persons, get_by_id_a_person, get_all_roles, \
+    get_by_id_a_role, get_all_clients, get_by_id_a_client, create_a_role, \
+    update_a_role, delete_a_role, create_a_film_person_role, \
+    update_a_film_person_role, delete_a_film_person_role, create_a_client, \
+    update_a_client, delete_a_client
 
 
 @strawberry.type
@@ -45,6 +55,30 @@ class Query:
         resolver=get_all_chapters)
     chapter: ChapterType = strawberry.field(
         resolver=get_by_id_a_chapter)
+
+    # Person
+    persons: typing.List[PersonType] = strawberry.field(
+        resolver=get_all_persons)
+    person: PersonType = strawberry.field(
+        resolver=get_by_id_a_person)
+
+    # Role
+    roles: typing.List[RoleType] = strawberry.field(
+        resolver=get_all_roles)
+    role: RoleType = strawberry.field(
+        resolver=get_by_id_a_role)
+
+    # FilmPersonRole
+    films_persons_roles: typing.List[FilmPersonRoleType] = strawberry.field(
+        resolver=get_all_roles)
+    film_person_role: FilmPersonRoleType = strawberry.field(
+        resolver=get_by_id_a_role)
+
+    # Client
+    clients: typing.List[ClientType] = strawberry.field(
+        resolver=get_all_clients)
+    client: ClientType = strawberry.field(
+        resolver=get_by_id_a_client)
 
 
 @strawberry.type
@@ -108,6 +142,72 @@ class Mutation:
     @strawberry.mutation
     def delete_chapter(self, chapter_id: int) -> ChapterReadType:
         return delete_a_chapter(chapter_id)
+
+    # Person
+    @strawberry.mutation
+    def create_person(self, person: PersonCreateType) \
+            -> PersonReadType:
+        return create_a_person(person)
+
+    @strawberry.mutation
+    def update_person(self, person_id: int,
+                      person: PersonCreateType) -> PersonReadType:
+        return update_a_person(person_id, person)
+
+    @strawberry.mutation
+    def delete_person(self, person_id: int) -> PersonReadType:
+        return delete_a_person(person_id)
+
+    # Role
+    @strawberry.mutation
+    def create_role(self, role: RoleCreateType) \
+            -> RoleReadType:
+        return create_a_role(role)
+
+    @strawberry.mutation
+    def update_role(self, role_id: int,
+                    role: RoleCreateType) -> RoleReadType:
+        return update_a_role(role_id, role)
+
+    @strawberry.mutation
+    def delete_role(self, role_id: int) -> RoleReadType:
+        return delete_a_role(role_id)
+
+    # Film Person Role
+    @strawberry.mutation
+    def create_film_person_role(
+            self, film_person_role_create_type: FilmPersonRoleCreateType) \
+            -> FilmPersonRoleReadType:
+        return create_a_film_person_role(film_person_role_create_type)
+
+    @strawberry.mutation
+    def update_film_person_role(
+            self, film_person_role_id: int,
+            film_person_role_create_type: FilmPersonRoleCreateType) \
+            -> FilmPersonRoleReadType:
+        return update_a_film_person_role(film_person_role_id,
+                                         film_person_role_create_type)
+
+    @strawberry.mutation
+    def delete_film_person_role(self, film_person_role_id: int) \
+            -> FilmPersonRoleReadType:
+        return delete_a_film_person_role(film_person_role_id)
+
+    # Client
+    @strawberry.mutation
+    def create_client(self, client_create_type: ClientCreateType) \
+            -> ClientReadType:
+        return create_a_client(client_create_type)
+
+    @strawberry.mutation
+    def update_client(self, client_id: int,
+                      client_create_type: ClientCreateType) \
+            -> ClientReadType:
+        return update_a_client(client_id, client_create_type)
+
+    @strawberry.mutation
+    def delete_client(self, client_id: int) -> ClientReadType:
+        return delete_a_client(client_id)
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
