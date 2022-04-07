@@ -1,5 +1,4 @@
 import typing
-from typing import Any, Coroutine
 
 import strawberry
 from strawberry.asgi import GraphQL
@@ -17,6 +16,7 @@ from graphql_app.schemas.persons import PersonReadType, PersonCreateType, \
     RoleCreateType, FilmPersonRoleCreateType, FilmPersonRoleReadType, \
     ClientCreateType, ClientReadType
 from graphql_app.schemas.rents import RentType, RentCreateType, RentReadType
+from graphql_app.schemas.tokens import TokenType
 from graphql_app.schemas.users import UserType, UserCreateType, UserReadType
 from resolvers.films import (get_all_categories, get_by_id_a_category,
                              create_a_category, update_a_category,
@@ -37,6 +37,7 @@ from resolvers.persons import create_a_person, update_a_person, \
     update_a_client, delete_a_client
 from resolvers.rents import get_by_id_a_rent, get_all_rents, create_a_rent, \
     update_a_rent, delete_a_rent
+from resolvers.security import login_for_access_token
 from resolvers.users import get_all_users, get_by_id_a_user, create_a_user, \
     update_a_user, delete_a_user
 
@@ -275,6 +276,11 @@ class Mutation:
     @strawberry.mutation
     def delete_poster(self, poster_id: int) -> PosterReadType:
         return delete_a_poster(poster_id)
+
+    # Token
+    @strawberry.mutation
+    def token(self, username: str, password: str) -> TokenType:
+        return login_for_access_token(username, password)
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
