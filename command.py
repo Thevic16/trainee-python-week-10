@@ -202,7 +202,8 @@ def persongen():
                                 lastname=lastname,
                                 gender=gender,
                                 date_of_birth=date_of_birth,
-                                person_type=person_type)
+                                person_type=person_type,
+                                age=Person.get_age(date_of_birth))
 
             session.add(new_person)
             session.commit()
