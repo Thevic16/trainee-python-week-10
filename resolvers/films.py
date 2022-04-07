@@ -14,7 +14,6 @@ from models.films_and_rents import (CategoryRead, Category, CategoryCreate,
                                     Season, SeasonCreate, ChapterRead, Chapter,
                                     ChapterCreate, Poster, PosterRead)
 from s3_events.s3_utils import S3_SERVICE
-from security.security import get_admin_user
 
 # S3 related imports
 import os

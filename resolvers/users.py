@@ -8,7 +8,7 @@ from starlette import status
 from databases.db import get_db_session
 from graphql_app.schemas.users import UserReadType, UserCreateType
 from models.users import UserRead, User, UserCreate
-from security.security import get_admin_user, get_password_hash
+from security.security import get_password_hash
 
 router = APIRouter()
 

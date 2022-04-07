@@ -60,12 +60,8 @@ def create_access_token(data: dict, expires_delta: timedelta):
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+async def get_current_user(token: str):
+    credentials_exception = Exception("Could not validate credentials")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -84,15 +80,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 
 # JWT permissions
-async def get_admin_user(
-        admin_user: User = Depends(get_current_user)):
+async def verify_admin_user(admin_user: User):
     if not admin_user.is_admin:
-        raise HTTPException(status_code=400, detail="Not admin user")
-    return admin_user
+        raise Exception("Not permission!,You are not admin user")
 
 
-async def get_admin_or_employee_user(
+async def verify_admin_or_employee_user(
         user: User = Depends(get_current_user)):
     if not user.is_admin and not user.is_employee:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return user
+        raise Exception("Inactive user")

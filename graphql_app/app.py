@@ -40,6 +40,7 @@ from resolvers.rents import get_by_id_a_rent, get_all_rents, create_a_rent, \
 from resolvers.security import login_for_access_token
 from resolvers.users import get_all_users, get_by_id_a_user, create_a_user, \
     update_a_user, delete_a_user
+from security.security import get_current_user, verify_admin_user
 
 
 @strawberry.type
@@ -115,8 +116,13 @@ class Query:
 class Mutation:
     # Category
     @strawberry.mutation
-    def create_category(self, category: CategoryCreateType) \
-            -> CategoryReadType:
+    async def create_category(
+            self, category: CategoryCreateType,
+            token: str) -> CategoryReadType:
+
+        user = await get_current_user(token)
+        await verify_admin_user(user)
+
         return create_a_category(category)
 
     @strawberry.mutation

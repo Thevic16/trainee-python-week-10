@@ -8,7 +8,6 @@ from starlette import status
 from databases.db import get_db_session
 from graphql_app.schemas.rents import RentReadType, RentCreateType
 from models.films_and_rents import RentRead, Rent, RentCreate
-from security.security import get_admin_or_employee_user
 
 router = APIRouter()
 

@@ -12,7 +12,6 @@ from graphql_app.schemas.persons import PersonReadType, PersonCreateType, \
 from models.persons import PersonRead, Person, PersonCreate, RoleRead, Role, \
     RoleCreate, FilmPersonRoleRead, FilmPersonRole, FilmPersonRoleCreate, \
     ClientRead, Client, ClientCreate
-from security.security import get_admin_user
 
 router = APIRouter()
 
