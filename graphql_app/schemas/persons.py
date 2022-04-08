@@ -1,8 +1,9 @@
 import strawberry
 
-from models.persons import PersonCreate, Person, PersonRead, Role, RoleCreate, \
-    RoleRead, FilmPersonRoleBase, FilmPersonRole, FilmPersonRoleCreate, \
-    FilmPersonRoleRead, Client, ClientCreate, ClientRead
+from models.persons import (PersonCreate, Person, PersonRead, Role, RoleCreate,
+                            RoleRead, FilmPersonRole, FilmPersonRoleCreate,
+                            FilmPersonRoleRead, Client, ClientCreate,
+                            ClientRead)
 
 
 # Person

@@ -327,8 +327,8 @@ class Mutation:
 
     # Rent
     @strawberry.mutation
-    async def create_rent(self, rent_create_type: RentCreateType
-                          , token: str) -> RentReadType:
+    async def create_rent(self, rent_create_type: RentCreateType,
+                          token: str) -> RentReadType:
         user = await get_current_user(token)
         await verify_admin_or_employee_user(user)
 

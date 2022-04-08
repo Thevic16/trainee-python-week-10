@@ -2,8 +2,7 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import jwt
-from fastapi import status, Depends
-from fastapi.exceptions import HTTPException
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError, InvalidSignatureError
 from dotenv import load_dotenv
