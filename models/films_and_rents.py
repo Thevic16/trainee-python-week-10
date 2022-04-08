@@ -101,7 +101,7 @@ class PosterRead(PosterBase):
 
 class SeasonBase(SQLModel):
     film_id: int = Field(foreign_key="film.id")
-    title: str = Field(sa_column=Column("title", String, unique=True))
+    title: str
     season_prequel_id: Optional[int] = Field(
         default=None,
         foreign_key="season.id",
@@ -113,7 +113,12 @@ class Season(SeasonBase, table=True):
 
 
 class SeasonCreate(SeasonBase):
-    pass
+    @validator('film_id')
+    def validate_film_id(cls, v):
+        statement = select(Film).where(Film.id == v)
+        film = session.exec(statement).first()
+        validators.validate_film_type_serie(film.film_type)
+        return v
 
 
 class SeasonRead(SeasonBase):
@@ -122,7 +127,7 @@ class SeasonRead(SeasonBase):
 
 class ChapterBase(SQLModel):
     season_id: int = Field(foreign_key="season.id")
-    title: str = Field(sa_column=Column("title", String, unique=True))
+    title: str
     chapter_prequel_id: Optional[int] = Field(
         default=None,
         foreign_key="chapter.id",

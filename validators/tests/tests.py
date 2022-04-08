@@ -7,7 +7,8 @@ from validators.validators import (validator_date_limit_today,
                                    validate_email, validate_phone,
                                    validate_film_type, validate_gender,
                                    validate_person_type_client,
-                                   validate_rent_state)
+                                   validate_rent_state, validate_person_type,
+                                   validate_film_type_serie)
 
 
 def fake_today():
@@ -129,6 +130,22 @@ class ValidationsTestCase(unittest.TestCase):
             date2 = date(year=2022, month=1, day=2)
             RentValidation.validate_date1_eq_or_low_date2(date1, date2,
                                                           "test")
+
+    def test_validate_person_type(self):
+        with self.assertRaises(AssertionError):
+            validate_person_type('not film related')
+
+        with self.assertRaises(AssertionError):
+            validate_person_type('not client')
+
+        self.assertEqual("film related", validate_person_type('film related'))
+        self.assertEqual("client", validate_person_type("client"))
+
+    def test_validate_film_type_serie(self):
+        with self.assertRaises(AssertionError):
+            validate_film_type_serie('not serie')
+
+        self.assertEqual("serie", validate_film_type_serie('serie'))
 
 
 if __name__ == '__main__':

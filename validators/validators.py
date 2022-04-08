@@ -57,6 +57,12 @@ def validate_rent_state(film_type: str) -> str:
     return film_type
 
 
+def validate_film_type_serie(film_type: str) -> str:
+    if film_type != 'serie':
+        raise AssertionError('film_type should be serie')
+    return film_type
+
+
 # Film Validators
 
 def validator_date_limit_today(input_date: date) -> date:
