@@ -1,12 +1,10 @@
 import os
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
-from starlette import status
+from fastapi import APIRouter
+
 
 from graphql_app.schemas.tokens import TokenType
-from models.tokens import Token
 from security.security import authenticate_user, create_access_token
 from dotenv import load_dotenv
 

@@ -1,18 +1,16 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi_redis_cache import cache_one_month
+from fastapi import APIRouter, HTTPException
 from sqlmodel import select
-from starlette import status
 
 from databases.db import get_db_session
-from graphql_app.schemas.films import CategoryType, CategoryCreateType, \
-    CategoryReadType, FilmReadType, FilmCreateType, SeasonReadType, \
-    SeasonCreateType, ChapterReadType, ChapterCreateType, PosterReadType
-from models.films_and_rents import (CategoryRead, Category, CategoryCreate,
-                                    FilmRead, Film, FilmCreate, SeasonRead,
-                                    Season, SeasonCreate, ChapterRead, Chapter,
-                                    ChapterCreate, Poster, PosterRead)
+from graphql_app.schemas.films import (CategoryCreateType,
+                                       CategoryReadType, FilmReadType,
+                                       FilmCreateType, SeasonReadType,
+                                       SeasonCreateType, ChapterReadType,
+                                       ChapterCreateType, PosterReadType)
+from models.films_and_rents import (Category, Film, Season, Chapter,
+                                    Poster)
 from s3_events.s3_utils import S3_SERVICE
 
 # S3 related imports
@@ -42,7 +40,6 @@ s3_client = S3_SERVICE(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION)
 
 
 # Film Related Resolvers
-@cache_one_month()
 def get_all_categories() -> List[CategoryReadType]:
     session.rollback()
     statement = select(Category)
@@ -54,7 +51,6 @@ def get_all_categories() -> List[CategoryReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_id_a_category(category_id: int) -> CategoryReadType:
     session.rollback()
     statement = select(Category).where(Category.id == category_id)
@@ -80,7 +76,7 @@ def create_a_category(category_create_type: CategoryCreateType) \
 
 
 def update_a_category(category_id: int, category_create_type:
-CategoryCreateType) -> CategoryReadType:
+                      CategoryCreateType) -> CategoryReadType:
     session.rollback()
     category = category_create_type.to_pydantic()
 
@@ -114,7 +110,6 @@ def delete_a_category(category_id: int) -> CategoryReadType:
     return CategoryReadType.from_pydantic(result)
 
 
-@cache_one_month()
 def get_all_films() -> List[FilmReadType]:
     session.rollback()
     statement = select(Film)
@@ -131,7 +126,6 @@ def get_all_films() -> List[FilmReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_id_a_film(film_id: int) -> FilmReadType:
     session.rollback()
     statement = select(Film).where(Film.id == film_id)
@@ -208,7 +202,6 @@ def delete_a_film(film_id: int) -> FilmReadType:
     return FilmReadType.from_pydantic(result)
 
 
-@cache_one_month()
 async def get_all_posters() -> List[PosterReadType]:
     session.rollback()
     statement = select(Poster)
@@ -220,7 +213,6 @@ async def get_all_posters() -> List[PosterReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_id_a_poster(poster_id: int) -> PosterReadType:
     session.rollback()
     statement = select(Poster).where(Poster.id == poster_id)
@@ -285,7 +277,6 @@ def delete_a_poster(poster_id: int) -> PosterReadType:
     return PosterReadType.from_pydantic(result)
 
 
-@cache_one_month()
 def get_all_seasons() -> List[SeasonReadType]:
     session.rollback()
     statement = select(Season)
@@ -297,7 +288,6 @@ def get_all_seasons() -> List[SeasonReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_a_season(season_id: int) -> SeasonReadType:
     session.rollback()
     statement = select(Season).where(Season.id == season_id)
@@ -358,7 +348,6 @@ def delete_a_season(season_id: int) -> SeasonReadType:
     return SeasonReadType.from_pydantic(result)
 
 
-@cache_one_month()
 def get_all_chapters() -> List[ChapterReadType]:
     session.rollback()
     statement = select(Chapter)
@@ -370,7 +359,6 @@ def get_all_chapters() -> List[ChapterReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_id_a_chapter(chapter_id: int) -> ChapterReadType:
     session.rollback()
     statement = select(Chapter).where(Chapter.id == chapter_id)

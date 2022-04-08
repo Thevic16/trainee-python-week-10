@@ -1,17 +1,15 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi_redis_cache import cache_one_month
+from fastapi import APIRouter
 from sqlmodel import select
-from starlette import status
 
 from databases.db import get_db_session
-from graphql_app.schemas.persons import PersonReadType, PersonCreateType, \
-    RoleReadType, RoleCreateType, FilmPersonRoleReadType, \
-    FilmPersonRoleCreateType, ClientReadType, ClientCreateType
-from models.persons import PersonRead, Person, PersonCreate, RoleRead, Role, \
-    RoleCreate, FilmPersonRoleRead, FilmPersonRole, FilmPersonRoleCreate, \
-    ClientRead, Client, ClientCreate
+from graphql_app.schemas.persons import (PersonReadType, PersonCreateType,
+                                         RoleReadType, RoleCreateType,
+                                         FilmPersonRoleReadType,
+                                         FilmPersonRoleCreateType,
+                                         ClientReadType, ClientCreateType)
+from models.persons import (Person, Role, FilmPersonRole, Client)
 
 router = APIRouter()
 
@@ -19,7 +17,6 @@ session = get_db_session()
 
 
 # Person Related Routes
-@cache_one_month()
 def get_all_persons() -> List[PersonReadType]:
     session.rollback()
     statement = select(Person)
@@ -31,7 +28,6 @@ def get_all_persons() -> List[PersonReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_id_a_person(person_id: int) -> PersonReadType:
     session.rollback()
     statement = select(Person).where(Person.id == person_id)
@@ -98,7 +94,6 @@ def delete_a_person(person_id: int) -> PersonReadType:
     return PersonReadType.from_pydantic(result)
 
 
-@cache_one_month()
 def get_all_roles() -> List[RoleReadType]:
     session.rollback()
     statement = select(Role)
@@ -110,7 +105,6 @@ def get_all_roles() -> List[RoleReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_id_a_role(role_id: int) -> RoleReadType:
     session.rollback()
     statement = select(Role).where(Role.id == role_id)
@@ -170,7 +164,6 @@ def delete_a_role(role_id: int) -> RoleReadType:
     return RoleReadType.from_pydantic(result)
 
 
-@cache_one_month()
 def get_all_films_persons_roles() -> List[FilmPersonRoleReadType]:
     session.rollback()
     statement = select(FilmPersonRole)
@@ -178,13 +171,12 @@ def get_all_films_persons_roles() -> List[FilmPersonRoleReadType]:
 
     results_strawberry = \
         [FilmPersonRoleReadType.from_pydantic(film_person_role)
-                          for film_person_role in results]
+         for film_person_role in results]
 
     return results_strawberry
 
 
-@cache_one_month()
-def get_by_id_a_film_person_role(film_person_role_id: int)\
+def get_by_id_a_film_person_role(film_person_role_id: int) \
         -> FilmPersonRoleReadType:
     session.rollback()
     statement = select(FilmPersonRole).where(
@@ -199,7 +191,7 @@ def get_by_id_a_film_person_role(film_person_role_id: int)\
 
 
 def create_a_film_person_role(
-        film_person_role_create_type: FilmPersonRoleCreateType)\
+        film_person_role_create_type: FilmPersonRoleCreateType) \
         -> FilmPersonRoleReadType:
     session.rollback()
     film_person_role = film_person_role_create_type.to_pydantic()
@@ -216,7 +208,7 @@ def create_a_film_person_role(
 
 def update_a_film_person_role(film_person_role_id: int,
                               film_person_role_create_type:
-                              FilmPersonRoleCreateType)\
+                              FilmPersonRoleCreateType) \
         -> FilmPersonRoleReadType:
     session.rollback()
     film_person_role = film_person_role_create_type.to_pydantic()
@@ -237,7 +229,7 @@ def update_a_film_person_role(film_person_role_id: int,
     return FilmPersonRoleReadType.from_pydantic(result)
 
 
-def delete_a_film_person_role(film_person_role_id: int)\
+def delete_a_film_person_role(film_person_role_id: int) \
         -> FilmPersonRoleReadType:
     session.rollback()
     statement = select(FilmPersonRole).where(
@@ -254,7 +246,6 @@ def delete_a_film_person_role(film_person_role_id: int)\
     return FilmPersonRoleReadType.from_pydantic(result)
 
 
-@cache_one_month()
 def get_all_clients() -> List[ClientReadType]:
     session.rollback()
     statement = select(Client)
@@ -266,7 +257,6 @@ def get_all_clients() -> List[ClientReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_id_a_client(client_id: int) -> ClientReadType:
     session.rollback()
     statement = select(Client).where(Client.id == client_id)
@@ -293,7 +283,7 @@ def create_a_client(client_create_type: ClientCreateType) -> ClientReadType:
     return ClientReadType.from_pydantic(new_client)
 
 
-def update_a_client(client_id: int, client_create_type: ClientCreateType)\
+def update_a_client(client_id: int, client_create_type: ClientCreateType) \
         -> ClientReadType:
     session.rollback()
     client = client_create_type.to_pydantic()

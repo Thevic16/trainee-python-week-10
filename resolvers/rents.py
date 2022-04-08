@@ -1,13 +1,11 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi_redis_cache import cache_one_month
+from fastapi import APIRouter
 from sqlmodel import select
-from starlette import status
 
 from databases.db import get_db_session
 from graphql_app.schemas.rents import RentReadType, RentCreateType
-from models.films_and_rents import RentRead, Rent, RentCreate
+from models.films_and_rents import Rent
 
 router = APIRouter()
 
@@ -15,7 +13,6 @@ session = get_db_session()
 
 
 # Rent Related Routes
-@cache_one_month()
 def get_all_rents() -> List[RentReadType]:
     session.rollback()
     statement = select(Rent)
@@ -27,7 +24,6 @@ def get_all_rents() -> List[RentReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_id_a_rent(rent_id: int) -> RentReadType:
     session.rollback()
     statement = select(Rent).where(Rent.id == rent_id)

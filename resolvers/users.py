@@ -1,13 +1,11 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi_redis_cache import cache_one_month
+from fastapi import APIRouter
 from sqlmodel import select
-from starlette import status
 
 from databases.db import get_db_session
 from graphql_app.schemas.users import UserReadType, UserCreateType
-from models.users import UserRead, User, UserCreate
+from models.users import User
 from security.security import get_password_hash
 
 router = APIRouter()
@@ -16,7 +14,6 @@ session = get_db_session()
 
 
 # User Related Resolvers
-@cache_one_month()
 def get_all_users() -> List[UserReadType]:
     session.rollback()
     statement = select(User)
@@ -28,7 +25,6 @@ def get_all_users() -> List[UserReadType]:
     return results_strawberry
 
 
-@cache_one_month()
 def get_by_id_a_user(user_id: int) -> UserReadType:
     session.rollback()
     statement = select(User).where(User.id == user_id)

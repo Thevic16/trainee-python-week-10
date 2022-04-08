@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import SQLModel
 from starlette.responses import JSONResponse
@@ -8,15 +8,6 @@ from graphql_app.app import graphql_app
 from resolvers import films
 
 from utilities.logger import Logger
-
-# Redis db imports
-from fastapi_redis_cache import FastApiRedisCache
-from dotenv import load_dotenv
-import os
-
-# Initialize environ
-# Load virtual variables
-load_dotenv()  # take environment variables from .env.
 
 app = FastAPI()
 
@@ -61,16 +52,4 @@ async def NoneType_exception_handler(request: Request,
     return JSONResponse(
         status_code=500,
         content={"message": "TypeError"},
-    )
-
-
-# Redis event------------------------------------------------------------------
-@app.on_event("startup")
-def startup():
-    redis_cache = FastApiRedisCache()
-    redis_cache.init(
-        host_url=os.environ.get("REDIS_URL", os.getenv('REDIS_URL')),
-        prefix="api-cache",
-        response_header="X-API-Cache",
-        ignore_arg_types=[Request, Response, session]
     )
