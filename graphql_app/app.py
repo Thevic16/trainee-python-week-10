@@ -2,7 +2,7 @@ import typing
 
 import strawberry
 from strawberry.asgi import GraphQL
-from strawberry.file_uploads import Upload
+from strawberry.extensions import ParserCache, ValidationCache
 
 from graphql_app.schemas.films import (CategoryType, CategoryCreateType,
                                        CategoryReadType, FilmType,
@@ -27,8 +27,7 @@ from resolvers.films import (get_all_categories, get_by_id_a_category,
                              get_all_chapters, get_by_id_a_chapter,
                              create_a_chapter, update_a_chapter,
                              delete_a_chapter, get_all_posters,
-                             get_by_id_a_poster, upload_poster,
-                             delete_a_poster)
+                             get_by_id_a_poster, delete_a_poster)
 from resolvers.persons import create_a_person, update_a_person, \
     delete_a_person, get_all_persons, get_by_id_a_person, get_all_roles, \
     get_by_id_a_role, get_all_clients, get_by_id_a_client, create_a_role, \
@@ -355,7 +354,6 @@ class Mutation:
     @strawberry.mutation
     async def create_user(self,
                           user_create_type: UserCreateType) -> UserReadType:
-
         return create_a_user(user_create_type)
 
     @strawberry.mutation
@@ -389,6 +387,11 @@ class Mutation:
         return login_for_access_token(username, password)
 
 
-schema = strawberry.Schema(query=Query, mutation=Mutation)
+schema = strawberry.Schema(query=Query, mutation=Mutation,
+                           extensions=[
+                               ParserCache(maxsize=128),
+                               ValidationCache(maxsize=128)
+                           ]
+                           )
 
 graphql_app = GraphQL(schema)
