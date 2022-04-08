@@ -20,22 +20,28 @@ Password: admin12345678
 Email: employee@filmrentalsystem.com <br />
 Password: employee12345678 
 
-Also, If you wish you can create your accounts using the following link. 
-(see postman collection for more details)<br />
+Also, If you wish you can create your accounts using the following link.<br />
 
 - Register your account. <br />
-link: https://week9-film-rental-system.herokuapp.com/api/users
+link: https://week10-film-rental-system.herokuapp.com/graphql
+
+Look for the mutation "createUser"
 
 # Heroku URLs for generate JWT token.
 Note: This is using "Bearer" as the JWT prefix. 
 
-link: https://week9-film-rental-system.herokuapp.com/docs
+link: https://week10-film-rental-system.herokuapp.com/graphql
 
-Search for Token form, and then put the username (email) and password of the 
+Search for token mutation, and then put the username (email) and password of the 
 user you want to use. 
 
+Note: For almost all the mutations you have to pass the token as parameter.
+
 # Heroku URl for API documentation. 
-link: https://week9-film-rental-system.herokuapp.com/doc/
+link: https://week10-film-rental-system.herokuapp.com/docs/
+
+Note: Here you can use /api/poster/upload/{film_id} endpoint to upload poster 
+images to S3.
 
 # Commands to seed ten records by table.
 Note: It would be a good idea to run the commands in the same order that
@@ -53,30 +59,9 @@ appears down to avoid errors for nonexistent data dependency.
 - python command.py filmspersonsrolesgen
 - python command.py rentsgen
 
-# Heroku URLs API apps (users, categories, films, seasons, chapters, persons, roles, films-persons-roles, clients and rents).
-link: https://week9-film-rental-system.herokuapp.com/api/users/
+# Heroku URL API apps (users, categories, films, seasons, chapters, persons, roles, films-persons-roles, clients and rents).
+link: https://week10-film-rental-system.herokuapp.com/graphql
 
-link: https://week9-film-rental-system.herokuapp.com/api/categories/
-
-link: https://week9-film-rental-system.herokuapp.com/api/films/
-
-link: https://week9-film-rental-system.herokuapp.com/api/posters/
-
-link: https://week9-film-rental-system.herokuapp.com/api/seasons/
-
-link: https://week9-film-rental-system.herokuapp.com/api/chapters/
-
-link: https://week9-film-rental-system.herokuapp.com/api/persons/
-
-link: https://week9-film-rental-system.herokuapp.com/api/roles/
-
-link: https://week9-film-rental-system.herokuapp.com/api/films-persons-roles/
-
-link: https://week9-film-rental-system.herokuapp.com/api/clients/
-
-link: https://week9-film-rental-system.herokuapp.com/api/rents/
-
-(See postman collection for more).
 
 # Note about Phone number format in clients App.
 The app receive phone number of the following format: "XXX-XXXX-XXXX" 
